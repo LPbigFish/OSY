@@ -24,11 +24,6 @@ KeepEmptyLines:
 LineEnding: LF
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: None
-NumericLiteralCase:
-  ExponentLetter: Lower
-  HexDigit: Upper
-  Prefix: Lower
-  Suffix: Lower
 PointerAlignment: Left
 QualifierAlignment: Left
 ReferenceAlignment: Left
@@ -48,6 +43,5 @@ SpaceBeforeInheritanceColon: false
 SpaceBeforeJsonColon: false
 SpaceBeforeRangeBasedForLoopColon: true
 SpaceBeforeSquareBrackets: false
-SpaceInEmptyBraces: Never
 SpacesInContainerLiterals: false
 UseTab: Never

@@ -1,5 +1,7 @@
 /.cache/
 
+/.direnv/
+
 /out/
 
 /build/
@@ -7,3 +9,9 @@
 /encode
 
 /decode
+
+encode
+
+decode
+
+compile_commands.json
