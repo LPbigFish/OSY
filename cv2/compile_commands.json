@@ -21,13 +21,13 @@
       "-Wvla",
       "-fstack-protector-strong",
       "-fsanitize=address,undefined",
+      "-fsanitize=address,undefined",
       "-o",
-      "encode",
-      "src/main.cpp",
-      "-fsanitize=address,undefined"
+      "transform",
+      "src/main.cpp"
     ],
-    "directory": "/home/lpbigfish/Projects/C++/OSY/cv2",
-    "output": "encode"
+    "directory": "/home/lpbigfish/Projects/C++/OSY/pr2",
+    "output": "transform"
   },
   {
     "file": "src/main.cpp",
@@ -67,10 +67,10 @@
       "-Wvla",
       "-fstack-protector-strong",
       "-fsanitize=address,undefined",
-      "-o",
-      "encode",
-      "src/main.cpp",
       "-fsanitize=address,undefined",
+      "-o",
+      "transform",
+      "src/main.cpp",
       "-U_FORTIFY_SOURCE",
       "-D_FORTIFY_SOURCE=3",
       "-B/nix/store/lm3pknxi0ipypy3lxh1wmm8wvvavdwrn-glibc-2.42-84/lib/",
@@ -89,7 +89,7 @@
       "-isystem",
       "/nix/store/1f8npkgmnhqwd1b6ap47b8jzsnhwqdrc-lldb-21.1.8-dev/include"
     ],
-    "directory": "/home/lpbigfish/Projects/C++/OSY/cv2",
-    "output": "encode"
+    "directory": "/home/lpbigfish/Projects/C++/OSY/pr2",
+    "output": "transform"
   }
 ]
