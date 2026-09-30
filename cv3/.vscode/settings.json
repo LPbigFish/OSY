@@ -1,0 +1,16 @@
+{
+    // Overrides user-level clangd.arguments, which still carries the stale
+    // --compile-commands-dir=build from the CMake setup. Workspace arrays
+    // replace user arrays, so this drops that flag and lets clangd find
+    // compile_commands.json in the workspace root.
+    "clangd.arguments": [
+        "--background-index",
+        "--clang-tidy",
+        "--query-driver=/nix/store/*-gcc-wrapper-*/bin/g++,/nix/store/*-clang-wrapper-*/bin/clang++"
+    ],
+    "[makefile]": {
+        "editor.insertSpaces": false,
+        "editor.detectIndentation": false,
+        "editor.tabSize": 4
+    }
+}

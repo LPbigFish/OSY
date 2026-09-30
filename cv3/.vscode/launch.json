@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug encode",
+            "program": "${workspaceFolder}/encode",
+            "args": ["5"],
+            "cwd": "${workspaceFolder}",
+            "stopOnEntry": false,
+            "preLaunchTask": "make"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug decode",
+            "program": "${workspaceFolder}/decode",
+            "args": ["5"],
+            "cwd": "${workspaceFolder}",
+            "stopOnEntry": false,
+            "preLaunchTask": "make"
+        }
+    ]
+}
