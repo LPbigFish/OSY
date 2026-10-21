@@ -1,4 +1,6 @@
 #include <arpa/inet.h>
+#include <array>
+#include <cstdint>
 #include <poll.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
@@ -10,14 +12,16 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <print>
 #include <string>
 
 constexpr int MAP_SIZE = 10;
 constexpr int CLIENT_TIMEOUT_MS = 60000;
-
 static bool g_debug = false;
 
-static bool write_all(int fd, const char* data, size_t size) {
+namespace {
+
+auto write_all(int fd, const char* data, size_t size) -> bool {
     size_t sent = 0;
     while (sent < size) {
         ssize_t count = write(fd, data + sent, size - sent);
@@ -32,17 +36,17 @@ static bool write_all(int fd, const char* data, size_t size) {
     return true;
 }
 
-static bool send_text(int fd, const std::string& text) {
+auto send_text(int fd, const std::string& text) -> bool {
     return write_all(fd, text.data(), text.size());
 }
 
-static bool valid_word(const std::string& word) {
+auto valid_word(const std::string& word) -> bool {
     return !word.empty() && word.find_first_of(" \t") == std::string::npos;
 }
 
-static bool send_info(int client, const std::string& animal) {
-    int channel[2];
-    if (pipe(channel) < 0) {
+auto send_info(int client, const std::string& animal) -> bool {
+    std::array<int, 2> channel{};
+    if (pipe(channel.data()) < 0) {
         perror("pipe");
         return send_text(client, "ERROR nelze spustit zoo_info\n");
     }
@@ -66,11 +70,12 @@ static bool send_info(int client, const std::string& animal) {
 
     close(channel[1]);
     bool success = true;
-    char buffer[512];
-    ssize_t count;
-    while ((count = read(channel[0], buffer, sizeof(buffer))) > 0) {
+    std::array<char, 512> buffer{};
+    ssize_t count = 0;
+    while ((count = read(channel[0], buffer.begin(), sizeof(buffer))) > 0) {
         if (success) {
-            success = write_all(client, buffer, static_cast<size_t>(count));
+            success
+                = write_all(client, buffer.begin(), static_cast<size_t>(count));
         }
     }
     if (count < 0) {
@@ -83,9 +88,9 @@ static bool send_info(int client, const std::string& animal) {
     return success;
 }
 
-static bool handle_command(
+auto handle_command(
     int client, const std::string& command, std::string& name, int& x, int& y
-) {
+) -> bool {
     if (command.starts_with("HELLO ")) {
         std::string requested = command.substr(6);
         if (!name.empty() || !valid_word(requested)) {
@@ -141,7 +146,7 @@ static bool handle_command(
     return send_text(client, "ERROR neznamy prikaz\n");
 }
 
-static void serve_player(int client) {
+auto serve_player(int client) -> void {
     signal(SIGCHLD, SIG_DFL);
     srand(
         static_cast<unsigned>(time(nullptr)) ^ static_cast<unsigned>(getpid())
@@ -170,8 +175,8 @@ static void serve_player(int client) {
             continue;
         }
 
-        char buffer[1024];
-        ssize_t count = read(client, buffer, sizeof(buffer));
+        std::array<char, 1024> buffer{};
+        ssize_t count = read(client, buffer.begin(), sizeof(buffer));
         if (count <= 0) {
             if (count < 0 && errno == EINTR) {
                 continue;
@@ -181,13 +186,13 @@ static void serve_player(int client) {
             }
             break;
         }
-        input.append(buffer, static_cast<size_t>(count));
+        input.append(buffer.begin(), static_cast<size_t>(count));
         if (input.size() > 4096) {
             send_text(client, "ERROR prikaz je prilis dlouhy\n");
             break;
         }
 
-        size_t newline;
+        size_t newline = 0;
         while ((newline = input.find('\n')) != std::string::npos) {
             std::string command = input.substr(0, newline);
             input.erase(0, newline + 1);
@@ -195,7 +200,7 @@ static void serve_player(int client) {
                 command.pop_back();
             }
             if (g_debug) {
-                std::fprintf(stderr, "[%d] %s\n", getpid(), command.c_str());
+                std::println(stderr, "[{}] {}", getpid(), command);
             }
             if (!handle_command(client, command, name, x, y)) {
                 return;
@@ -204,15 +209,16 @@ static void serve_player(int client) {
     }
 }
 
-static int parse_port(const char* text) {
+auto parse_port(const char* text) -> int {
     char* end = nullptr;
     errno = 0;
-    long port = strtol(text, &end, 10);
+    int64_t port = strtol(text, &end, 10);
     return errno == 0 && end != text && *end == '\0' && port > 0
                 && port <= 65535
              ? static_cast<int>(port)
              : 0;
 }
+} // namespace
 
 auto main(int argc, char** argv) -> int {
     int port = 0;
