@@ -107,7 +107,7 @@ uppercase_messages(int first[2], int second[2], int third[2]) {
 
     while ((count = read(third[0], buffer, sizeof(buffer))) > 0) {
         for (ssize_t index = 0; index < count; ++index) {
-            unsigned char character = static_cast<unsigned char>(buffer[index]);
+            auto character = static_cast<unsigned char>(buffer[index]);
             if (character == '\n') {
                 ++messages;
                 total_length += line_length;
