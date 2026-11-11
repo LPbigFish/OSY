@@ -1,0 +1,1202 @@
+<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 3.0//EN">
+<!-- saved from url=(0062)https://smnd.sk/anino/programming/c/dobias/kap9.htm#SEKCE01280 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>Meziprocesni komunikace</title>
+<meta name="description" content="Meziprocesni komunikace">
+<meta name="keywords" content="unix programming programovani">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+</head>
+<body lang="CZ" bgcolor="#EOF8C0" text="#0F0F0F" vlink="#D82090" link="blue" alink="fuchsia">
+<a href="https://smnd.sk/anino/programming/c/dobias/kap10.htm"><img align="BOTTOM" alt="dalsi" src="./Meziprocesni komunikace_files/next.gif"></a>
+<a href="https://smnd.sk/anino/programming/c/dobias/kap8.htm"><img align="BOTTOM" alt="predchozi" src="./Meziprocesni komunikace_files/previous.gif"></a>
+<a href="https://smnd.sk/anino/programming/c/dobias/index.htm#OBSAH"><img align="BOTTOM" alt="obsah" src="./Meziprocesni komunikace_files/contents.gif"></a>
+<br>
+<b> Dalsi:</b> <a href="https://smnd.sk/anino/programming/c/dobias/kap10.htm">Sitovani</a>
+<b> Predchozi:</b> <a href="https://smnd.sk/anino/programming/c/dobias/kap8.htm">Meziprocesni komunikace</a>
+<br> <p>
+</p><h1>
+<a name="IPC">&nbsp;</a>
+<a name="SEKCE01200">Meziprocesni komunikace</a></h1>
+<p>
+<br> </p><hr>
+<ul>
+<li> <a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#SEKCE01210">Uvod</a>
+</li><li> <a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#SEKCE01220">Roury</a>
+</li><li> <a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#SEKCE01230">Funkce <tt>popen</tt> a <tt>pclose</tt></a>
+</li><li> <a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#SEKCE01240">Koprocesy</a>
+</li><li> <a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#SEKCE01250">Funkce <tt>fifo</tt></a>
+</li><li> <a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#SEKCE01260">System V IPC</a>
+</li><li> <a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#SEKCE01270">Fronty</a>
+</li><li> <a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#SEKCE01280">Semafory</a>
+</li><li> <a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#SEKCE01290">Sdilena pamet</a>
+</li></ul>
+<hr>
+<br> <p>
+</p><h2><a name="SEKCE01210">Uvod</a></h2>
+<p>
+Predchozi kapitola ukazuje primitiva nutna pro rizeni procesu. Jestlize
+ale tyto procesy jiz bezi, je nutne zajistit mezi nimi komunikaci. Unix
+podporuje sirokou skalu prostredku pro komunikaci mezi procesy
+(IPC -- InterProcess Communination).
+</p><p>
+</p><hr>
+<br> <p>
+</p><h2>
+<a name="roury">&nbsp;</a>
+<a name="SEKCE01220">Roury</a></h2>
+<p>
+Roury (pipes) jsou nejstarsim komunikacnim prostredkem v unixu. Jsou
+podporovany vsemi typy unixu za techto omezujicich podminek:
+</p><p>
+</p><ul>
+<li>
+Jedna se o polovicni duplex. Data putuji jen jednim smerem.
+</li><li>
+Mohou byt pouzity pouze v pripade, ze procesy maji spolecneho
+predchudce.
+</li></ul>
+<p>
+V kapitole <a href="https://smnd.sk/anino/programming/c/dobias/kap10.htm#proudoveroury">"Funkce <tt>socketpair</tt></a>
+si popiseme <em>proudove roury</em>, ktere
+eliminuji prvni omezeni, a pred <em>pojmenovanymi rourami</em> neobstoji
+ani druhe omezeni, viz kap. <a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#FIFO">"Funkce <tt>fifo</tt>"</a>.
+</p><p>
+Roura se vytvori vyvolanim funkce <tt>pipe</tt>.
+</p><p>
+</p><p></p><p>
+
+
+</p><div align="CENTER"><p align="CENTER">
+<table cols="1" border="1" width="100%">
+<tbody>
+<tr><td bgcolor="#B0BCF8"><tt>#include &lt;unistd.h&gt;</tt></td></tr>
+<tr><td bgcolor="#F8F490"><tt>int pipe (int <i>filedes[2]</i>);</tt></td></tr>
+<tr><td bgcolor="#F8BCF8" align="right">
+Vraci: 0 kdyz OK, -1 pri chybe
+</td></tr>
+</tbody>
+</table></p><p>
+</p></div>
+
+<p>
+Funkce vrati dva deskriptory pomoci argumentu <i>filedes</i>. Deskriptor
+<i>filedes[0]</i> je otevren pro cteni a <i>filedes[1]</i> pro zapis. Pro
+schematicke znazorneni roury muzeme pouzit dva zpusoby, jak je vidno
+z <a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#pipe1">obr. 11</a>.
+</p><p>
+</p><p>
+</p><div align="CENTER"><p align="CENTER">
+<a name="pipe1">
+<img src="./Meziprocesni komunikace_files/pipe1.gif" alt="Zde ma byt moc hezky obrazek &#39;pipe1&#39;, skoda, ze ho nevidite"></a>
+</p></div>
+<div align="CENTER"><p align="CENTER">
+<strong>Obrazek 11:</strong>
+Dva zpusoby zobrazeni unixove roury
+</p></div>
+
+<p>
+Roura je u jednoho procesu bezvyznamna. Proto se casto pouziva volani
+<tt>pipe</tt> pred <tt>fork</tt>. Bezny scenar ilustruje
+<a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#pipefork1">obrazek 12</a>.
+</p><p>
+</p><div align="CENTER"><p align="CENTER">
+<a name="pipefork1">
+<img src="./Meziprocesni komunikace_files/pipefork.gif" alt="Zde ma byt moc hezky obrazek &#39;pipefork&#39;, skoda, ze ho nevidite"></a>
+</p></div>
+<div align="CENTER"><p align="CENTER">
+<strong>Obrazek 12:</strong>
+Poloduplexni roura po <tt>fork</tt>
+</p></div>
+
+<p>
+</p><p>
+Procesy pak musi zabezpecit uzavreni nepouzivanych koncu. Viz
+<a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#pipefork2">obr. 13</a>.
+</p><p>
+</p><div align="CENTER"><p align="CENTER">
+<a name="pipefork2">
+<img src="./Meziprocesni komunikace_files/pipepch.gif" alt="Zde ma byt moc hezky obrazek &#39;pipepch&#39;, skoda, ze ho nevidite"></a>
+</p></div>
+<div align="CENTER"><p align="CENTER">
+<strong>Obrazek 13:</strong>
+Roura od rodice k potomkovi
+</p></div>
+
+
+<p>
+</p><p>
+Kdyz je jeden konec roury zavreny, deje se nasledujici:
+</p><p>
+</p><ul>
+<li>
+Jestlize cteme z roury, jejiz vstup byl uzavren, <tt>read</tt> vrati 0.
+</li><li>
+Jestlize zapisujeme do roury, kterou nikdo necte, unix generuje
+<tt>SIGPIPE</tt>.
+</li></ul>
+<p>
+</p><p></p><p>Priklad:</p><p>
+</p><pre>int
+main(void)
+{
+    int     n, fd[2];
+    pid_t   pid;
+    char    line[MAXLINE];
+
+    if (pipe(fd) &lt; 0)
+        err_sys("pipe error");
+
+    if ( (pid = fork()) &lt; 0)
+        err_sys("fork error");
+
+    else if (pid &gt; 0) {        /* parent */
+        close(fd[0]);
+        write(fd[1], "hello world\n", 12);
+
+    } else {                /* child */
+        close(fd[1]);
+        n = read(fd[0], line, MAXLINE);
+        write(STDOUT_FILENO, line, n);
+    }
+
+    exit(0);
+}</pre>
+<p>
+Nyni jsme jiz schopni nahradit funkce
+<tt>TELL_WAIT</tt>, ...z kap. <a href="https://smnd.sk/anino/programming/c/dobias/kap7.htm#raceconditions">"Podminky zavodu"</a>
+konkretni implementaci. Pro komunikaci tentokrat vyuzijeme roury.
+</p><p>
+</p><p></p><p>Priklad:</p><p>
+</p><pre>static int    pfd1[2], pfd2[2];
+
+void
+TELL_WAIT()
+{
+    if (pipe(pfd1) &lt; 0 || pipe(pfd2) &lt; 0)
+        err_sys("pipe error");
+}
+
+void
+TELL_PARENT(pid_t pid)
+{
+    if (write(pfd2[1], "c", 1) != 1)
+        err_sys("write error");
+}
+
+void
+WAIT_PARENT(void)
+{
+    char    c;
+
+    if (read(pfd1[0], &amp;c, 1) != 1)
+        err_sys("read error");
+    if (c != 'p')
+        err_quit("WAIT_PARENT: incorrect data");
+}
+
+void
+TELL_CHILD(pid_t pid)
+{
+    if (write(pfd1[1], "p", 1) != 1)
+        err_sys("write error");
+}
+
+void
+WAIT_CHILD(void)
+{
+    char    c;
+
+    if (read(pfd2[0], &amp;c, 1) != 1)
+        err_sys("read error");
+    if (c != 'c')
+        err_quit("WAIT_CHILD: incorrect data");
+}</pre>
+<p>
+</p><hr>
+<br> <p>
+</p><h2><a name="SEKCE01230">Funkce <tt>popen</tt> a <tt>pclose</tt></a></h2>
+<p>
+Ackoliv se vetsinou <tt>pipe</tt> vyuziva pro meziprocesni komunikaci, lze
+roury s uspechem pouzit i pro I/O operace. Tyto funkce zajistuji
+spinavou praci -- vytvoreni <tt>pipe</tt>, <tt>fork</tt> potomka,
+uzavreni nadbytecnych koncu a volani shellu pro vykonani prikazu.
+</p><p>
+</p><p></p><p>
+
+</p><div align="CENTER"><p align="CENTER">
+<table cols="1" border="1" width="100%">
+<tbody>
+<tr><td bgcolor="#B0BCF8"><tt>#include &lt;stdio.h&gt;</tt></td></tr>
+<tr><td bgcolor="#F8F490"><tt>FILE *popen (const char *<i>cmdstring</i>, const char *<i>type</i>);</tt></td></tr>
+<tr><td bgcolor="#F8BCF8" align="right">
+Vraci: ukazatel kdyz OK, <tt>NULL</tt> pri chybe
+</td></tr>
+<tr><td bgcolor="#F8F490"><tt>int pclose (FILE *<i>fp</i>);</tt></td></tr>
+<tr><td bgcolor="#F8BCF8" align="right">
+Vraci: status ukonceni dle <i>cmdstring</i> nebo -1 pri chybe
+</td></tr>
+</tbody>
+</table></p><p>
+</p></div>
+
+<p>
+Cinnost je nejlepe patrna z obrazku <a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#popenr">14</a> a 
+<a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#popenw">15</a>.
+</p><p>
+
+</p><div align="CENTER"><p align="CENTER">
+<a name="popenr">
+<img src="./Meziprocesni komunikace_files/popenr.gif" alt="Zde ma byt moc hezky obrazek &#39;popenr&#39;, skoda, ze ho nevidite"></a>
+</p></div>
+<div align="CENTER"><p align="CENTER">
+<strong>Obrazek 14:</strong>
+Vysledek po <tt>fp=popen(<i>cmdstring</i>, "r")</tt>
+</p></div>
+
+<p>
+</p><div align="CENTER"><p align="CENTER">
+<a name="popenw">
+<img src="./Meziprocesni komunikace_files/popenw.gif" alt="Zde ma byt moc hezky obrazek &#39;popenw&#39;, skoda, ze ho nevidite"></a>
+</p></div>
+<div align="CENTER"><p align="CENTER">
+<strong>Obrazek 14:</strong>
+Vysledek po <tt>fp=popen(<i>cmdstring</i>, "w")</tt>
+</p></div>
+
+<p>
+</p><p>
+Prikazovy retezec je interpretovan shellem. Jestlize nemuze byt shell
+vyvolan, nastavi se navratovy kod na 127. Retezec se vlastne provadi
+jako:
+</p><p>
+<tt>sh -c </tt><i>cmdstring</i>
+</p><p>
+Proto lze pri tomto zpracovani plne vyuzivat hvezdickovou konvenci
+i ostatni substituce shellu.
+</p><p>
+</p><pre>    fp = popen ("ls *.c", "r");</pre>
+<p>
+Jestlize tedy chceme posilat vystupy naseho programu do nejakeho
+strankovace, muzeme vyuzit IPC a napr. program <tt>more</tt>.
+</p><p>
+</p><p></p><p>Priklad:</p><p>
+</p><pre>#include    &lt;sys/wait.h&gt;
+
+#define    PAGER    "${PAGER:-more}"
+           /* environment variable, or default */
+
+int
+main(int argc, char *argv[])
+{
+    char    line[MAXLINE];
+    FILE    *fpin, *fpout;
+
+    if (argc != 2)
+        err_quit("usage: a.out &lt;pathname&gt;");
+    if ( (fpin = fopen(argv[1], "r")) == NULL)
+        err_sys("can't open %s", argv[1]);
+
+    if ( (fpout = popen(PAGER, "w")) == NULL)
+        err_sys("popen error");
+
+        /* copy argv[1] to pager */
+    while (fgets(line, MAXLINE, fpin) != NULL) {
+        if (fputs(line, fpout) == EOF)
+            err_sys("fputs error to pipe");
+    }
+    if (ferror(fpin))
+        err_sys("fgets error");
+    if (pclose(fpout) == -1)
+        err_sys("pclose error");
+    exit(0);
+}</pre>
+<p>
+</p><hr>
+<br> <p>
+</p><h2><a name="SEKCE01240">Koprocesy</a></h2>
+<p>
+Unixove filtry jsou takove programy, ktere ctou standardni vstup a
+zapisuji do standardniho vystupu. Filtry se normalne spojuji
+linearne za sebou. Filtr se stane koprocesem, kdyz nejaky
+program generuje jeho vstup a zaroven cte jeho vystup.
+</p><p>
+Koprocesy (spolupracujici oboustranne komunikujici procesy) nabizi
+take <em>Korn shell</em>.
+</p><p>
+Na <a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#koproces">obr. 16</a> je videt, jak probiha komunikace s koprocesem.
+</p><p>
+</p><div align="CENTER"><p align="CENTER">
+<a name="koproces">
+<img src="./Meziprocesni komunikace_files/koproces.gif" alt="Zde ma byt moc hezky obrazek &#39;koproces&#39;, skoda, ze ho nevidite"></a>
+</p></div>
+<div align="CENTER"><p align="CENTER">
+<strong>Obrazek 16:</strong>
+Ovladani koprocesu
+</p></div>
+
+<p>
+Celou cinnost lze take pochopit z prikladu.
+</p><p>
+</p><p></p><p>Priklad:</p><p>
+</p><pre>int
+main(void)
+{
+    int     n, int1, int2;
+    char    line[MAXLINE];
+
+    while ( (n = read(STDIN_FILENO, line, MAXLINE)) &gt; 0) {
+        line[n] = 0;        /* null terminate */
+        if (sscanf(line, "%d%d", &amp;int1, &amp;int2) == 2) {
+            sprintf(line, "%d\n", int1 + int2);
+            n = strlen(line);
+            if (write(STDOUT_FILENO, line, n) != n)
+                err_sys("write error");
+        } else {
+            if (write(STDOUT_FILENO, "invalid args\n", 13) != 13)
+                err_sys("write error");
+        }
+    }
+    exit(0);
+}</pre>
+<p>
+Tento program nedela nic jineho, nez ze secte dvojici cisel ze vstupu a
+vysledek posle na vystup. Pro ilustraci koprocesu musime pridat jakysi
+<em>driver</em> pro obsluhu tohoto programu.
+</p><p>
+</p><p></p><p>Priklad:</p><p>
+</p><pre>#include    &lt;signal.h&gt;
+
+static void    sig_pipe(int);        /* our signal handler */
+
+int
+main(void)
+{
+    int     n, fd1[2], fd2[2];
+    pid_t   pid;
+    char    line[MAXLINE];
+
+    if (signal(SIGPIPE, sig_pipe) == SIG_ERR)
+        err_sys("signal error");
+
+    if (pipe(fd1) &lt; 0 || pipe(fd2) &lt; 0)
+        err_sys("pipe error");
+
+    if ( (pid = fork()) &lt; 0)
+        err_sys("fork error");
+    else if (pid &gt; 0) {                            /* parent */
+        close(fd1[0]);
+        close(fd2[1]);
+        while (fgets(line, MAXLINE, stdin) != NULL) {
+            n = strlen(line);
+            if (write(fd1[1], line, n) != n)
+                err_sys("write error to pipe");
+            if ( (n = read(fd2[0], line, MAXLINE)) &lt; 0)
+                err_sys("read error from pipe");
+            if (n == 0) {
+                err_msg("child closed pipe");
+                break;
+            }
+            line[n] = 0;    /* null terminate */
+            if (fputs(line, stdout) == EOF)
+                err_sys("fputs error");
+        }
+        if (ferror(stdin))
+            err_sys("fgets error on stdin");
+        exit(0);
+
+    } else {                                    /* child */
+        close(fd1[1]);
+        close(fd2[0]);
+        if (fd1[0] != STDIN_FILENO) {
+            if (dup2(fd1[0], STDIN_FILENO) != STDIN_FILENO)
+                err_sys("dup2 error to stdin");
+            close(fd1[0]);
+        }
+        if (fd2[1] != STDOUT_FILENO) {
+            if (dup2(fd2[1], STDOUT_FILENO) != STDOUT_FILENO)
+                err_sys("dup2 error to stdout");
+            close(fd2[1]);
+        }
+        if (execl("./add2", "add2", (char *) 0) &lt; 0)
+            err_sys("execl error");
+    }
+}
+
+static void
+sig_pipe(int signo)
+{
+    printf("SIGPIPE caught\n");
+    exit(1);
+}</pre>
+<p>
+Toto schema je v unixu casto vyuzivano. Je vsak treba si dat pozor na
+bufferovani standardnich I/O operaci.
+</p><p>
+V nasem koprocesu jsme pouzili funkce <tt>read</tt> a <tt>write</tt>.
+Kdybychom prepsali program pomoci <tt>fgets</tt> a <tt>printf</tt>, tak by
+program nefungoval, pokud bychom nenastavili nulovy buffer pomoci:
+</p><p>
+</p><pre>  if (setvbuf(stdin, NULL, _IOLBF, 0) != 0)
+      err_sys ("setvbuf error");
+  if (setvbuf(stdout, NULL, _IOLBF, 0) != 0)
+      err_sys ("setvbuf error");</pre>
+<p>
+Timto bychom sice vyresili problem pro nas pripad, ale co mame delat,
+kdyz jako koproces chceme tento program pro <tt>awk</tt>, ktery resi
+stejny problem?
+</p><p>
+</p><pre>  #! /bin/awk -f
+  { print $1 + $2 }</pre>
+<p>
+Zde, protoze nemuzeme predelat zdrojovy kod <tt>awk</tt>u, je jedinym
+resenim pripojit standardni vstup a vystup k tzv. <em>
+pseudoterminalu</em> (o nem viz literaturu [<a href="https://smnd.sk/anino/programming/c/dobias/kap155.html#stevens-adv">7</a>],
+kapitola 19).
+</p><p>
+</p><hr>
+<br> <p>
+</p><h2>
+<a name="FIFO">&nbsp;</a>
+<a name="SEKCE01250">Funkce <tt>fifo</tt></a></h2>
+<p>
+Tento zpusob meziprocesni komunikace se take nekdy nazyva pojmenovane
+roury. Standardni roury mohou pozivat pouze procesy se shodnym
+predchudcem. FIFO mohou pouzivat i procesy, ktere spolu jinak nesouvisi.
+V kapitole o filesystemu (kap. <a href="https://smnd.sk/anino/programming/c/dobias/kap4.htm">"Soubory a adresare"</a>) 
+jsme ukazali, ze
+FIFO je typ souboru. Vytvoreni FIFO je tedy obdobne vytvoreni souboru.
+</p><p>
+</p><p></p><p>
+
+
+</p><div align="CENTER"><p align="CENTER">
+<table cols="1" border="1" width="100%">
+<tbody>
+<tr><td bgcolor="#B0BCF8"><tt>#include &lt;sys/types.h&gt;<br>
+ #include &lt;sys/stat.h&gt;</tt></td></tr>
+<tr><td bgcolor="#F8F490"><tt>int mkfifo (const char <i>pathname</i>, mode_t <i>mode</i>);</tt></td></tr>
+<tr><td bgcolor="#F8BCF8" align="right">
+Vraci: 0 kdyz OK, -1 pri chybe
+</td></tr>
+</tbody>
+</table></p><p>
+</p></div>
+
+<p>
+Specifikace argumentu <i>mode</i> je shodna s funkci <tt>open</tt>
+(viz kap. <a href="https://smnd.sk/anino/programming/c/dobias/kap3.htm#funkceopen">Funkce <tt>open</tt></a>). Po vytvoreni FIFO jej musime otevrit funkci
+<tt>open</tt>. Pak uz s nim muzeme pracovat jako s kazdym jinym souborem
+(<tt>read</tt>, <tt>write</tt>, ...).
+</p><p>
+V unixu se standardne FIFO pouziva pro:
+</p><p>
+</p><ul>
+<li>
+Predavani dat z jednoho shellovskeho prikazu druhemu bez vytvareni
+docasnych souboru.
+</li><li>
+Client-server aplikace.
+</li></ul>
+<p>
+Priklad:
+</p><p>
+FIFO muzeme vyuzit pro duplikovani vystupniho toku dat. S pouzitim
+prikazu <tt>tee</tt> muzeme pak posilat vystup jednoho programu dvema
+dalsim. (Program <tt>tee</tt> kopiruje standardni vstup na standardni
+vystup a zaroven do daneho souboru.)
+</p><p>
+Zapis v shellu bude vypadat takto:
+</p><p>
+</p><pre>    mkfifo fifo1
+    prog3 &lt; fifo1&amp;
+    prog1 &lt; infile | tee fifo1 | prog2</pre>
+<p>
+Vysledek muzete videt na <a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#teepipe">obrazku 17</a>.
+</p><p>
+</p><div align="CENTER"><p align="CENTER">
+<a name="teepipe">
+<img src="./Meziprocesni komunikace_files/teepipe.gif" alt="Zde ma byt moc hezky obrazek &#39;teepipe&#39;, skoda, ze ho nevidite"></a>
+</p></div>
+<div align="CENTER"><p align="CENTER">
+<strong>Obrazek 17:</strong>
+Posilani proudu dvema procesum pomoci FIFO a <tt>tee</tt>
+</p></div>
+
+<p>
+Priklad pouziti v sytemu client-server nam dava schema na
+<a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#clientserverFIFO">obr. 18</a>.
+</p><p>
+</p><div align="CENTER"><p align="CENTER">
+<a name="clientserverFIFO">
+<img src="./Meziprocesni komunikace_files/client.gif" alt="Zde ma byt moc hezky obrazek &#39;client&#39;, skoda, ze ho nevidite"></a>
+</p></div>
+<div align="CENTER"><p align="CENTER">
+<strong>Obrazek 18:</strong>
+Priklad komunikace klient-server pomoci FIFO
+</p></div>
+
+<p></p><hr>
+<br> <p>
+</p><h2>
+<a name="SystemVIPC">&nbsp;</a>
+<a name="SEKCE01260">System V IPC</a></h2>
+<p>
+Jednotlive prostredky pro meziprocesni komunikaci maji mnoho spolecneho.
+V Systemu V existuji tri zakladni typy IPC -- zpravy, fronty a
+semafory. Nekdy se take zahrnuje do vyctu sdilena pamet. Poprve byly tyto
+rysy implementovany do interni verze Unixu Columbus v sedmdesatych
+letech.
+</p><p>
+</p><hr>
+<br> <p>
+</p><h3><a name="SEKCE01261">Identifikatory a klice</a></h3>
+<p>
+Kazda IPC struktura v jadre je referencovana pomoci nezaporneho celeho
+cisla. Toto cislo se nazyva identifikator. Na rozdil od popisovacu
+souboru unix nezajistuje alokaci nejmensiho volneho identifikatoru, ale
+postupne identifikatory zvysuje.
+</p><p>
+Kdykoliv vytvorime IPC strukturu, musime specifikovat klic. Klic slouzi
+k pristupu k dane strukture. Pro pristup k existujici strukture musi byt
+klic shodny s klicem zadanym pri vytvareni struktury.
+</p><p>
+Existuje nekolik variant komunikacnich scenaru:
+</p><p>
+</p><ol>
+<li>
+Server vytvori IPC strukturu, klic nastavi na <tt>IPC_PRIVATE</tt> a
+ulozi navratovy identifikator tak, aby byl pro klienta dostupny. Klic
+lze predat pomoci souboru nebo pomoci promenne pred provedenim
+<tt>fork</tt>.
+</li><li>
+Klient i server se dohodnou na nejakem klici. Server pak vytvori
+strukturu s timto klicem. Problemy nastanou, kdyz je klic obsazen.
+</li><li>
+Klient i server se dohodnou na spolecnem cisle projektu a ceste. Pouziji
+pak funkci <tt>ftok</tt> pro konverzi techto hodnot do klice. Funkce
+<tt>ftok</tt> je popsana v <tt>stdipc(3)</tt>.
+</li></ol>
+<p>
+Tri IPC funkce maji jednoduche argumenty -- <i>key</i> a <i>flag</i>.
+Nova IPC struktura je vytvorena, jestlize:
+</p><p>
+</p><ol>
+<li>
+<i>key</i> je <tt>IPC_PRIVATE</tt> nebo
+</li><li>
+<i>key</i> neni momentalne spojen s IPC strukturou daneho typu je zadan
+priznak <tt>IPC_CREATE</tt>.
+</li></ol>
+<p>
+Odkaz na klic (obvykle zajistuje klient) musi byt shodny se
+specifikovanym klicem a bit <tt>IPC_CREAT</tt> nemusi byt nastaven.
+</p><p>
+</p><hr>
+<br> <p>
+</p><h3><a name="SEKCE01262">Vyhody a nevyhody</a></h3>
+<p>
+Zakladnim problemem IPC v Systemu V spociva v tom, ze struktury jsou
+volne pristupne a nemaji referencni pocitadlo. Napr. jestlize si
+vytvorite frontu a pak ji ukoncite, tato fronta a jeji obsah zustanou
+zachovany az do te doby, nez je obsah precten nebo vymazan.
+</p><p>
+Dalsim problemem je to, ze IPC struktury nejsou pod svym jmenem znamy
+filesystemu. Proto nemuzeme modifikovat jejich zdroje, ani na ne pouzit
+nastroje z predchozich kapitol.
+</p><p>
+V <a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#IPCvyhody">tabulce 14</a> jsou shrnuty hlavni vyhody jednotlivych typu
+IPC. Z tabulky neni patrna dalsi nesporna vyhoda a totiz to, ze IPC
+provadi unikatni spojeni pro kazdeho klienta.
+</p><p>
+<a name="IPCvyhody">&nbsp;</a>
+</p><div align="CENTER"><p align="CENTER"><small class="SMALL">
+<table cols="6" border="">
+<tbody>
+<tr><th>Typ IPC </th>
+    <th>bez spojeni</th>
+    <th>spolehlive</th>
+    <th>rizeni toku</th>
+    <th>zaznamy</th>
+    <th> typy zprav<br>ci priority</th>
+</tr></tbody>
+<tbody>
+<tr><td>fronty          </td>
+    <td> ne  </td>
+    <td> ano </td>
+    <td> ano </td>
+    <td> ano </td>
+    <td> ano </td></tr>
+<tr><td>streams         </td>
+    <td> ne  </td>
+    <td> ano </td>
+    <td> ano </td>
+    <td> ano </td>
+    <td> ano </td></tr>
+<tr><td>stream socket   </td>
+    <td> ne  </td>
+    <td> ano </td>
+    <td> ano </td>
+    <td> ne  </td>
+    <td> ne  </td></tr>
+<tr><td>datagram socket </td>
+    <td> ano </td>
+    <td> ano </td>
+    <td> ne  </td>
+    <td> ano </td>
+    <td> ne </td></tr>
+<tr><td>FIFO            </td>
+    <td> ne  </td>
+    <td> ano </td>
+    <td> ano </td>
+    <td> ne  </td>
+    <td> ne </td></tr>
+</tbody>
+<caption align="BOTTOM"><strong>Tabulka 14:</strong>
+Porovnani vlastnosti ruznych typu IPC
+</caption></table>
+</small>
+</p></div>
+
+<p>
+</p><p>
+Sokety i proudove roury patri jiz do kapitoly sitoveho programovani
+(viz kapitolu <a href="https://smnd.sk/anino/programming/c/dobias/kap10.htm">"Sitovani"</a>).
+</p><p>
+</p><hr>
+<br> <p>
+</p><h2><a name="SEKCE01270">Fronty</a></h2>
+<p>
+Fronta je seznam zprav navzajem provazanych odkazy, ukladan pomoci jadra.
+Kazda fronta ma unikatni identifikator. Nova fronta se vytvori funkci
+<tt>msgget</tt>. Stejnou funkci se otevre i jiz existujici fronta.
+Informace se do fronty zapisuji funkci <tt>msgsnd</tt> a vybiraji pomoci
+<tt>msgrcv</tt>. Nemusime nutne vybirat zpravy metodou FIFO, ale muzeme je
+vybirat v zavislosti na jejich typu. Ke kazde fronte je pridelena
+odpovidajici struktura <tt>msqid_ds</tt> (popsana v <tt>&lt;sys/msg.h&gt;</tt>).
+</p><p>
+Prvni funkci zpravidla byva <tt>msgget</tt>, ktera zajisti otevreni nebo
+vytvoreni fronty.
+</p><p>
+</p><p></p><p>
+
+
+</p><div align="CENTER"><p align="CENTER">
+<table cols="1" border="1" width="100%">
+<tbody>
+<tr><td bgcolor="#B0BCF8"><tt>#include &lt;sys/types.h&gt;<br>
+#include &lt;sys/ipc.h&gt;<br>
+#include &lt;sys/msg.h&gt;</tt></td></tr>
+<tr><td bgcolor="#F8F490"><tt>int msgget (key_t <i>key</i>, int <i>flag</i>);</tt></td></tr>
+<tr><td bgcolor="#F8BCF8" align="right">
+Vraci: identifikator fronty kdyz OK, -1 pri chybe
+</td></tr>
+</tbody>
+</table></p><p>
+</p></div>
+
+<p>
+Kapitola <a href="https://smnd.sk/anino/programming/c/dobias/kap9.htm#SystemVIPC">"System V IPC"</a> popisuje zpusob konverze klice do
+identifikatoru. V pripade vytvoreni nove fronty jsou inicializovany
+nektere dulezite prvky struktury <tt>msqid_ds</tt>.
+</p><p>
+Se zalozenou frontou lze provadet nektere ridici operace. K tomu slouzi
+funkce <tt>msgctl</tt>.
+</p><p>
+</p><p></p><p>
+
+
+</p><div align="CENTER"><p align="CENTER">
+<table cols="1" border="1" width="100%">
+<tbody>
+<tr><td bgcolor="#B0BCF8"><tt>#include &lt;sys/types.h&gt;<br>
+#include &lt;sys/ipc.h&gt;<br>
+#include &lt;sys/msg.h&gt;</tt></td></tr>
+<tr><td bgcolor="#F8F490"><tt>int msgctl (int <i>msqid</i>, int <i>cmd</i>, struct msqid_ds *<i>buf</i>);</tt></td></tr>
+<tr><td bgcolor="#F8BCF8" align="right">
+Vraci: 0 kdyz OK, -1 pri chybe
+</td></tr>
+</tbody>
+</table></p><p>
+</p></div>
+
+<p>
+Parametr <i>cmd</i> urcuje, jaka operace se bude provadet. Tyto tri akce
+lze provadet i pro semafory a sdilenou pamet:
+</p><p>
+
+</p><div align="CENTER"><p align="CENTER">
+<table cols="2" border="0">
+<tbody>
+<tr><td><tt>IPC_STAT </tt></td><td> Nacteni ridici struktury do <i>buf</i>. </td></tr>
+<tr><td><tt>IPC_SET  </tt></td><td> Nastaveni nekterych poli struktury IPC. </td></tr>
+<tr><td><tt>IPC_RMID </tt></td><td> Odstraneni fronty ze systemu. </td></tr>
+</tbody>
+</table>
+</p></div>
+
+Data zapisujeme do fronty funkci <tt>msgsnd</tt>.
+<p>
+</p><p></p><p>
+
+
+</p><div align="CENTER"><p align="CENTER">
+<table cols="1" border="1" width="100%">
+<tbody>
+<tr><td bgcolor="#B0BCF8"><tt>#include &lt;sys/types.h&gt;<br>
+#include &lt;sys/ipc.h&gt;<br>
+#include &lt;sys/msg.h&gt;</tt></td></tr>
+<tr><td bgcolor="#F8F490"><tt>int msgsnd (int <i>msqid</i>, const void *<i>ptr</i>, size_t <i>nbytes</i>, int <i>flag</i>);</tt></td></tr>
+<tr><td bgcolor="#F8BCF8" align="right">
+Vraci: 0 kdyz OK, -1 pri chybe
+</td></tr>
+</tbody>
+</table></p><p>
+</p></div>
+
+<p>
+Argumenty specifikuji identifikator fronty, ukazatel na zacatek fronty,
+velikost zpravy a priznaky. Priznak muze byt nastaven na
+<tt>IPC_NOWAIT</tt>, coz je vlastne ekvivalent neblokujiciho priznaku
+pouzivaneho u I/O funkci.
+</p><p>
+Je vyhodne zavest jakesi typy zprav (pro priority). Proto struktura nasi
+zpravy muze vypadat napr. takto:
+</p><p>
+</p><pre>  struct mymesg {
+    long mtype;
+    char mtext[512];
+  }</pre>
+<p>
+Zpravy z fronty vybira funkce <tt>msgrcv</tt>.
+</p><p>
+</p><p></p><p>
+
+
+</p><div align="CENTER"><p align="CENTER">
+<table cols="1" border="1" width="100%">
+<tbody>
+<tr><td bgcolor="#B0BCF8"><tt>#include &lt;sys/types.h&gt;<br>
+#include &lt;sys/ipc.h&gt;<br>
+#include &lt;sys/msg.h&gt;</tt></td></tr>
+<tr><td bgcolor="#F8F490"><tt>int msgrcv (int <i>msqid</i>, void *<i>ptr</i>, size_t <i>nbytes</i>, long <i>type</i>, int <i>flag</i>);</tt></td></tr>
+<tr><td bgcolor="#F8BCF8" align="right">
+Vraci: delku zpravy kdyz OK, -1 pri chybe
+</td></tr>
+</tbody>
+</table></p><p>
+</p></div>
+
+<p>
+Stejne jako u <tt>msgsnd</tt>, ukazatel <i>ptr</i> ukazuje na long, kde
+je ulozen typ zpravy.
+Argument <i>type</i> muze nabyvat nasledujicich hodnot:
+</p><p>
+</p><div align="CENTER"><p align="CENTER">
+<p></p><p>
+
+</p><hr><br><p>
+</p><h2><a name="SEKCE01280">Semafory</a></h2><p>
+Semafory nejsou pravou formou IPC, ale casto se vyuzivaji jako
+jednoduchy synchronizacni prostredek. Semafor obecne je vlastne jen
+pocitadlo urcene k pridelovani zdroju. Proto s nim lze delat tyto veci:
+</p><p>
+</p><ul>
+<li>
+Test hodnoty semaforu.
+</li><li>
+Je-li hodnota semaforu kladna, proces muze zdroj vyuzit. Dekrementuje
+pritom hodnotu semaforu o 1.
+</li><li>
+Je-li navratova hodnota semaforu 0, je proces uspan az do doby, kdy jsou
+zdroje uvolneny a semafor nabyde kladne hodnoty.
+</li></ul><p>
+Pro korektni implementaci semaforu je nutne zarucit, aby operace nad
+semafory byly atomicke. Nejjednodussi typ semaforu je tzv. <em>
+binarni</em> semafor -- tj. semafor, ktery kontroluje pristup prave 
+k jednomu objektu.
+</p><p>
+V Systemu V jsou semafory komplikovanejsi:
+</p><p>
+</p><ol>
+<li>
+Semafory nejsou jen nezaporne cislo, ale mnozina hodnot. Pri vytvareni
+semaforu urcime pocet techto hodnot.
+</li><li>
+Vytvoreni semaforu a jeho nastaveni neni atomicka operace.
+</li><li>
+Je zde undo funkce -- pro zamezeni zamrznuti semaforu
+v systemu.
+</li></ol><p>
+Ke kazdemu semaforu udrzuje jadro odpovidajici strukturu
+<tt>semid_ds</tt> (je popsana v <tt>&lt;sys/sem.h&gt;</tt>).
+</p><p>
+Prvni funkci byva zpravidla vytvoreni semaforu -- <tt>semget</tt>.
+</p><p>
+</p><p></p><p>
+
+
+</p><div align="CENTER"><p align="CENTER">
+</p></div><table cols="2" border="">
+<tbody>
+<tr><td><i>type == 0 </i></td><td> Vrati prvni zpravu z fronty. </td></tr>
+<tr><td><i>type &gt; 0  </i></td><td> Vrati prvni zpravu daneho typu. </td></tr>
+<tr><td><i>type &lt; 0  </i></td><td> Vrati prvni zpravu nejnizsiho typu, nizsiho, nez abs(<i>type</i>).</td></tr>
+</tbody>
+
+
+ 
+
+
+</table><table cols="1" border="1" width="100%">
+<tbody>
+<tr><td bgcolor="#B0BCF8"><tt>#include &lt;sys/types.h&gt;<br>
+#include &lt;sys/ipc.h&gt;<br>
+#include &lt;sys/sem.h&gt;</tt></td></tr>
+<tr><td bgcolor="#F8F490"><tt>int semget (key_t <i>key</i>, int <i>nsems</i>, int <i>flag</i>);</tt></td></tr>
+<tr><td bgcolor="#F8BCF8" align="right">
+Vraci: identifikator semaforu kdyz OK, -1 pri chybe
+</td></tr>
+</tbody>
+</table></p><p>
+</p></div>
+
+<p>
+Argument <i>nsems</i> urcuje pocet semaforu v mnozine. Pri vytvareni
+semaforu se musi tato polozka specifikovat. Pri odkazu na existujici
+semafor staci dosadit 0.
+</p><p>
+Ridici operace nad semaforem zajistuje funkce <tt>semctl</tt>.
+</p><p>
+</p><p></p><p>
+
+
+</p><div align="CENTER"><p align="CENTER">
+<table cols="1" border="1" width="100%">
+<tbody>
+<tr><td bgcolor="#B0BCF8"><tt>#include &lt;sys/types.h&gt;<br>
+#include &lt;sys/ipc.h&gt;<br>
+#include &lt;sys/sem.h&gt;</tt></td></tr>
+<tr><td bgcolor="#F8F490"><tt>int semctl (int <i>semid</i>, int <i>semnum</i>, int <i>cmd</i>, union semun <i>arg</i>);</tt></td></tr>
+<tr><td bgcolor="#F8BCF8" align="right">
+Vraci: zavisi na operaci
+</td></tr>
+</tbody>
+</table></p><p>
+</p></div>
+
+<p>
+Vsimnete si, ze posledni argument je union, nikoli ukazatel na union.
+</p><p>
+</p><pre>union semun {
+int                val;   /* pro SETVAL */
+struct semuid_ds  *buf;   /* pro IPC_STAT a IPC_SET */
+ushort            *array; /* pro GATALL a SETALL */
+}</pre>
+<p>
+V nasledujicim prehledu jsou vyjmenovany nektere z ridicich operaci nad
+semaforem.
+</p><p>
+</p><div align="CENTER"><p align="CENTER">
+<table cols="2" border="0">
+<tbody>
+<tr><td><tt>IPC_STAT </tt></td><td> Nacteni ridici struktury semaforu. </td></tr>
+<tr><td><tt>IPC_SET  </tt></td><td> Nastaveni nekterych poli struktury IPC. </td></tr>
+<tr><td><tt>IPC_RMID </tt></td><td> Odstraneni semaforu ze systemu. </td></tr>
+<tr><td><tt>GETVAL    </tt></td><td> Zjisteni hodnoty semaforu. </td></tr>
+<tr><td><tt>SETVAL    </tt></td><td> Nastaveni hodnoty semaforu. </td></tr>
+<tr><td><tt>GETPID    </tt></td><td> Zjisteni <tt>sempid</tt>. </td></tr>
+</tbody>
+</table>
+</p></div>
+
+Nejdulezitejsi jsou ale operace nad semafory -- funkce <tt>semop</tt>.
+<p>
+</p><p></p><p>
+
+
+</p><div align="CENTER"><p align="CENTER">
+<table cols="1" border="1" width="100%">
+<tbody>
+<tr><td bgcolor="#B0BCF8"><tt>#include &lt;sys/types.h&gt;<br>
+#include &lt;sys/ipc.h&gt;<br>
+#include &lt;sys/sem.h&gt;</tt></td></tr>
+<tr><td bgcolor="#F8F490"><tt>int semop (int <i>semid</i>, struct sembuf <i>semoparray[]</i>, size_t <i>nops</i>);</tt></td></tr>
+<tr><td bgcolor="#F8BCF8" align="right">
+Vraci: 0 kdyz OK, -1 pri chybe
+</td></tr>
+</tbody>
+</table></p><p>
+</p></div>
+
+<p>
+Argument <tt>semarr</tt> je vlastne ukazatel na pole operaci nad
+semaforem.
+</p><p>
+</p><pre>  struct sembuf {
+    ushort sem_num; /* cislo semaforu v sade */
+    short  sem_op;  /* operace nad semaforem */
+    short  sem_flg; /* IPC_NOWAIT, SEM_UNDO */
+  }</pre>
+<p>
+</p><ol>
+<li>
+Nejjednodussi operace nad semaforem je v pripade, ze <tt>sem_op</tt> je
+kladna. K semaforu se jen pricte hodnota <tt>sem_op</tt>.
+</li><li>
+Jestlize <tt>sem_op</tt>&lt;0, znamena to, ze proces vyzaduje
+zdroje.
+<p>
+Je-li semafor kladny a vetsi, nez absolutni hodnota <tt>sem_op</tt>,
+pak se odecte <tt>sem_op</tt> a proces bezi dal.
+</p><p>
+Jinak ale
+  </p><ol>
+<li>
+  Jestlize je nastaven priznak <tt>IPC_NOWAIT</tt>, je vracena chyba
+  <tt>EAGAIN</tt>.
+</li><li>
+  Neni-li dan priznak <tt>IPC_NOWAIT</tt>, je proces uspan az do splneni
+  nektere z nasledujicich podminek.
+    <ol>
+<li>
+    Hodnota semaforu je vetsi, nez absolutni hodnota <tt>sem_op</tt>.
+</li><li>
+    Semafor je odstranen ze systemu (chyba <tt>ERMID</tt>).
+</li><li>
+    Proces dostane signal (chyba <tt>EINTR</tt>).
+    </li></ol></li></ol>
+</li><li>
+Je-li <tt>sem_op</tt>=0, znamena to, ze chceme cekat, dokud se
+semafor nevynuluje.
+<p>
+Jestlize je semafor 0, funkce se vrati okamzite.
+</p><p>
+Pokud je nenulovy, pak
+  </p><ol>
+<li>
+  jestlize je nastaven priznak <tt>IPC_NOWAIT</tt>, je vracena chyba
+  <tt>EAGAIN</tt>.
+</li><li>
+  neni-li dan priznak <tt>IPC_NOWAIT</tt>, je proces uspan az do splneni
+  nektere z nasledujicich podminek.
+    <ol>
+<li>
+    Semafor se vynuluje.
+</li><li>
+    Semafor je odstranen ze systemu (chyba <tt>ERMID</tt>).
+</li><li>
+    Proces dostane signal (chyba <tt>EINTR</tt>).
+    </li></ol></li></ol></li></ol>
+<p>
+Atomicka povaha funkce <tt>sem_op</tt> je zarucena.
+</p><p>
+</p><hr>
+<br> <p>
+</p><h3><a name="SEKCE01281">Nastaveni semaforu pri volani <tt>exit</tt></a></h3>
+<p>
+Zvlastni problem predstavuje definovani hodnoty semaforu pri ukonceni
+procesu. Existuje totiz moznost zablokovani ostatnich procesu nespravnym
+ukoncenim jednoho z procesu sdilejicich semafor.
+</p><p>
+Tento problem resi priznak <tt>SEM_UNDO</tt>. V pripade ukonceni procesu
+jadro rozpozna, kolik zdroju proces alokoval a upravi hodnotu semaforu.
+</p><p>
+</p><hr>
+<br> <p>
+</p><h2><a name="SEKCE01290">Sdilena pamet</a></h2>
+<p>
+Sdilena pamet umoznuje dvema nebo i vice procesum sdilet cast adresniho
+prostoru. Tato forma IPC je ze vsech nejrychlejsi, protoze neni nutne
+kopirovat data pri komunikaci typu client-server. Jedine uskali teto
+metody spociva v nutnosti synchronizovani pristupu k pameti.
+</p><p>
+Proces o prideleni pameti pozada funkci <tt>shmget</tt>.
+</p><p>
+</p><p></p><p>
+
+
+</p><div align="CENTER"><p align="CENTER">
+<table cols="1" border="1" width="100%">
+<tbody>
+<tr><td bgcolor="#B0BCF8"><tt>#include &lt;sys/types.h&gt;<br>
+#include &lt;sys/ipc.h&gt;<br>
+#include &lt;sys/shm.h&gt;</tt></td></tr>
+<tr><td bgcolor="#F8F490"><tt>int shmget (key_t <i>key</i>, int <i>size</i>, int <i>flag</i>);</tt></td></tr>
+<tr><td bgcolor="#F8BCF8" align="right">
+Vraci: identifikator sdilene pameti kdyz OK, -1 pri chybe
+</td></tr>
+</tbody>
+</table></p><p>
+</p></div>
+
+<p>
+Nad blokem sdilene pameti lze opet provadet ridici operace:
+</p><p>
+</p><p></p><p>
+
+
+</p><div align="CENTER"><p align="CENTER">
+<table cols="1" border="1" width="100%">
+<tbody>
+<tr><td bgcolor="#B0BCF8"><tt>#include &lt;sys/types.h&gt;<br>
+#include &lt;sys/ipc.h&gt;<br>
+#include &lt;sys/shm.h&gt;</tt></td></tr>
+<tr><td bgcolor="#F8F490"><tt>int shmctl (int <i>shmid</i>, int <i>cmd</i>, struct shmid_ds *<i>buf</i>);</tt></td></tr>
+<tr><td bgcolor="#F8BCF8" align="right">
+Vraci: 0 kdyz OK, -1 pri chybe
+</td></tr>
+</tbody>
+</table></p><p>
+</p></div>
+
+<p>
+Popis struktury <tt>shmid_ds</tt> je v <tt>&lt;sys/shm.h&gt;</tt>.
+</p><p>
+Parametr <i>cmd</i> opet urcuje, jaka operace se bude provadet.
+</p><p>
+
+</p><div align="CENTER"><p align="CENTER">
+<table cols="2" border="0">
+<tbody>
+<tr><td><tt>IPC_STAT   </tt></td><td> Nacteni ridici struktury sdilene pameti. </td></tr>
+<tr><td><tt>IPC_SET    </tt></td><td> Nastaveni nekterych poli struktury IPC. </td></tr>
+<tr><td><tt>IPC_RMID   </tt></td><td> Odstraneni sdilene pameti ze systemu. </td></tr>
+<tr><td><tt>SHM_LOCK   </tt></td><td> Uzamceni sdilene pameti (jen superuzivatel). </td></tr>
+<tr><td><tt>SHM_UNLOCK </tt></td><td> Odemceni sdilene pameti (jen superuzivatel). </td></tr>
+</tbody>
+</table>
+</p></div>
+
+<p>
+Jakmile je jednou sdileny blok pameti vytvoren, je mozne ho pripojit do
+adresniho prostoru funkci <tt>shmat</tt>.
+</p><p>
+</p><p></p><p>
+
+
+</p><div align="CENTER"><p align="CENTER">
+<table cols="1" border="1" width="100%">
+<tbody>
+<tr><td bgcolor="#B0BCF8"><tt>#include &lt;sys/types.h&gt;<br>
+#include &lt;sys/ipc.h&gt;<br>
+#include &lt;sys/shm.h&gt;</tt></td></tr>
+<tr><td bgcolor="#F8F490"><tt>void *shmat (int <i>shmid</i>, void *<i>addr</i>, int <i>flag</i>);</tt></td></tr>
+<tr><td bgcolor="#F8BCF8" align="right">
+Vraci: ukazatel na sdilenou pamet kdyz OK, -1 pri chybe
+</td></tr>
+</tbody>
+</table></p><p>
+</p></div>
+
+<p>
+Pripojeni segmentu je zavisle na hodnote argumentu <i>addr</i> a
+nastaveni priznaku.
+</p><p>
+Obecne mohou nastat tyto priznaky:
+</p><p>
+</p><ol>
+<li>
+<i>addr</i> == 0. Segment je pripojen na prvni dostupnou adresu v adresovem
+prostoru ulohy (doporucena technika).
+</li><li><i>addr</i> != 0
+ a <tt>SHM_RND</tt> neni specifikovan. Segment je pripojen
+na zadanou adresu.
+</li><li><i>addr</i> != 0
+ a je nastaven <tt>SHM_RND</tt>. Segment je pripojen na
+adresu .
+<tt>SHM_RND</tt> znamena zaokrouhluj a <tt>SHMLBA</tt> byva mocnina 2.
+</li></ol>
+<p>
+Pro ukonceni prace se sdilenou pameti ji muzeme odpojit.
+</p><p>
+</p><p></p><p>
+
+
+</p><div align="CENTER"><p align="CENTER">
+<table cols="1" border="1" width="100%">
+<tbody>
+<tr><td bgcolor="#B0BCF8"><tt>#include &lt;sys/types.h&gt;<br>
+#include &lt;sys/ipc.h&gt;<br>
+#include &lt;sys/shm.h&gt;</tt></td></tr>
+<tr><td bgcolor="#F8F490"><tt>int shmdt (void *<i>addr</i>);</tt></td></tr>
+<tr><td bgcolor="#F8BCF8" align="right">
+Vraci: 0 kdyz OK, -1 pri chybe
+</td></tr>
+</tbody>
+</table></p><p>
+</p></div>
+
+<p>
+</p><p></p><p>Priklad:</p><p>
+<small class="SMALL">
+</small></p><pre><small class="SMALL">#include    &lt;sys/types.h&gt;
+#include    &lt;sys/ipc.h&gt;
+#include    &lt;sys/shm.h&gt;
+
+#define    ARRAY_SIZE    40000
+#define    MALLOC_SIZE   100000
+#define    SHM_SIZE      100000
+#define    SHM_MODE      (SHM_R | SHM_W)    /* user read/write */
+
+char    array[ARRAY_SIZE];    /* uninitialized data = bss */
+
+int
+main(void)
+{
+    int        shmid;
+    char    *ptr, *shmptr;
+
+    printf("array[] from %x to %x\n", &amp;array[0], &amp;array[ARRAY_SIZE]);
+    printf("stack around %x\n", &amp;shmid);
+
+    if ( (ptr = malloc(MALLOC_SIZE)) == NULL)
+        err_sys("malloc error");
+    printf("malloced from %x to %x\n", ptr, ptr+MALLOC_SIZE);
+
+    if ( (shmid = shmget(IPC_PRIVATE, SHM_SIZE, SHM_MODE)) &lt; 0)
+        err_sys("shmget error");
+    if ( (shmptr = shmat(shmid, 0, 0)) == (void *) -1)
+        err_sys("shmat error");
+    printf("shared memory attached from %x to %x\n",
+                shmptr, shmptr+SHM_SIZE);
+    if (shmctl(shmid, IPC_RMID, 0) &lt; 0)
+        err_sys("shmctl error");
+
+    exit(0);
+}</small></pre><small class="SMALL">
+</small>
+<p>
+</p><hr>
+<br> <p>
+</p><h2><a name="SEKCE012100">Cviceni</a></h2>
+<p>
+</p><ol>
+<li>
+Co se stane, kdyz argument pro <tt>popen</tt> je neexistujici prikaz?
+Napiste maly program, ktery to otestuje.
+<p>
+</p></li></ol>
+<p>
+</p><hr>
+<a href="https://smnd.sk/anino/programming/c/dobias/kap10.htm"><img align="BOTTOM" alt="dalsi" src="./Meziprocesni komunikace_files/next.gif"></a>
+<a href="https://smnd.sk/anino/programming/c/dobias/kap8.htm"><img align="BOTTOM" alt="predchozi" src="./Meziprocesni komunikace_files/previous.gif"></a>
+<a href="https://smnd.sk/anino/programming/c/dobias/index.htm#OBSAH"><img align="BOTTOM" alt="obsah" src="./Meziprocesni komunikace_files/contents.gif"></a>
+<br>
+<b> Dalsi:</b> <a href="https://smnd.sk/anino/programming/c/dobias/kap10.htm">Sitovani</a>
+<b> Predchozi:</b> <a href="https://smnd.sk/anino/programming/c/dobias/kap8.htm">Meziprocesni komunikace</a>
+<br> <p>
+
+</p><p></p><address>
+<i>Ladislav Dobias <br>
+Sat Nov  1 15:38:32 MET 1997</i>
+</address>
+
+
+
+
+
+
+
+
+<!----><!----><!----> <!----></body></html>
