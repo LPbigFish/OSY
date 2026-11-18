@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug server",
+            "program": "${workspaceFolder}/server",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopOnEntry": false,
+            "preLaunchTask": "make"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug client",
+            "program": "${workspaceFolder}/client",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopOnEntry": false,
+            "preLaunchTask": "make"
+        }
+    ]
+}
